@@ -68,6 +68,17 @@ const parallelPromise = ({ executor, url, count, concurrency }) =>
     concurrency,
   });
 
+const initAlljs = () => {
+  const script = document.createElement("script");
+  script.src = "https://connect-cdn.atl-paas.net/all.js";
+  script.setAttribute("data-options", "sizeToParent:true");
+  document.body.appendChild(script);
+};
+
+if (!process.env.REACT_APP_FORGE) {
+  initAlljs();
+}
+
 const App = () => {
   const [url, setUrl] = useState("");
   const [isExecuting, setIsExecuting] = useState(false);
@@ -110,7 +121,8 @@ const App = () => {
     <div style={containerStyle}>
       <div style={sectionStyle}>
         <h1 style={{ textAlign: "center", marginBottom: "20px" }}>
-          requestJira() performance test
+          {process.env.REACT_APP_FORGE ? `requestJira()` : `AP.request()`}{" "}
+          performance test
         </h1>
         <label style={labelStyle}>
           Get URL path, e.g. <i>/rest/api/3/myself</i>
