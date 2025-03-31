@@ -1,0 +1,31 @@
+modules:
+  jira:adminPage:
+    - key: api-perf-hello-world-admin-page
+      resource: main
+      title: requestJira performance test
+resources:
+  - key: main
+    path: static/api-perf/build
+app:
+  runtime:
+    name: nodejs22.x
+  id: ari:cloud:ecosystem::app/a6c43388-d04b-4515-a871-78af3c2c4005
+  connect:
+    key: api.perf.test
+    remote: connect
+    authentication: jwt
+permissions:
+  scopes:
+    - read:jira-work
+    - read:jira-user
+    - read:connect-jira
+remotes:
+  - key: connect
+    baseUrl: https://api-performance.netlify.app/
+connectModules:
+  jira:generalPages:
+    - key: api.test
+      url: /index.html
+      name:
+        value: AP.request performance test
+      location: system.top.navigation.bar
