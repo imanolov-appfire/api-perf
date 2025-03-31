@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-
-// import { requestJira } from "@forge/bridge";
+import { Promise as BluebirdPromise } from "bluebird";
 
 const inputStyle = {
   width: "100%",
@@ -26,7 +25,25 @@ const sectionStyle = {
   marginBottom: "20px",
 };
 
-export const request = (url) =>
+export const forgeRequest = async (url) => {
+  const { requestJira } = await import("@forge/bridge");
+
+  const start = performance.now();
+  await requestJira(url, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+  });
+  const end = performance.now();
+
+  console.log(`Request to ${url} took ${end - start} ms`);
+
+  return end - start;
+};
+
+export const connectRequest = (url) =>
   new Promise((resolve, reject) => {
     const start = performance.now();
 
@@ -46,28 +63,45 @@ export const request = (url) =>
     });
   });
 
+const parallelPromise = ({ executor, url, count, concurrency }) =>
+  BluebirdPromise.map(Array.from({ length: count }), () => executor(url), {
+    concurrency,
+  });
+
 const App = () => {
   const [url, setUrl] = useState("");
   const [isExecuting, setIsExecuting] = useState(false);
-  const [numberOfRequests, setNumberOfRequests] = useState(1);
+  const [requestsCount, setRequestsCount] = useState(1);
   const [executionTime, setExecutionTime] = useState(0);
   const [responseTimes, setResponseTimes] = useState([]);
+  const [concurrency, setConcurrency] = useState(5);
+
+  const requestHandler = process.env.REACT_APP_FORGE
+    ? forgeRequest
+    : connectRequest;
 
   const handleClick = async () => {
     setExecutionTime(0);
+    setResponseTimes([]);
     setIsExecuting(true);
+
+    window.performance.clearMarks();
+    window.performance.clearMeasures();
+
     window.performance.mark("start");
 
-    const requests = Array.from({ length: numberOfRequests }, () =>
-      request(url, { type: "GET" })
-    );
-    const times = await Promise.all(requests);
-    setResponseTimes(times);
+    const times = await parallelPromise({
+      executor: requestHandler,
+      url,
+      count: requestsCount,
+      concurrency,
+    });
 
     window.performance.mark("end");
     window.performance.measure("total", "start", "end");
     const total = window.performance.getEntriesByName("total");
 
+    setResponseTimes(times);
     setExecutionTime(total[0].duration);
     setIsExecuting(false);
   };
@@ -76,7 +110,7 @@ const App = () => {
     <div style={containerStyle}>
       <div style={sectionStyle}>
         <h1 style={{ textAlign: "center", marginBottom: "20px" }}>
-          AP.request() performance test
+          requestJira() performance test
         </h1>
         <label style={labelStyle}>
           Get URL path, e.g. <i>/rest/api/3/myself</i>
@@ -91,7 +125,17 @@ const App = () => {
         <label style={labelStyle}>Number of requests</label>
         <input
           type="number"
-          onChange={(e) => setNumberOfRequests(Number(e.target.value))}
+          onChange={(e) => setRequestsCount(Number(e.target.value))}
+          style={inputStyle}
+        />
+      </div>
+      <div style={sectionStyle}>
+        <label style={labelStyle}>Concurrency</label>
+        <input
+          type="number"
+          defaultValue={concurrency}
+          min={1}
+          onChange={(e) => setConcurrency(Number(e.target.value))}
           style={inputStyle}
         />
       </div>

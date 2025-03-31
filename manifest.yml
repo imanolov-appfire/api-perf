@@ -6,6 +6,8 @@ modules:
 resources:
   - key: main
     path: static/api-perf/build
+    tunnel:
+      port: 3000
 app:
   runtime:
     name: nodejs22.x
