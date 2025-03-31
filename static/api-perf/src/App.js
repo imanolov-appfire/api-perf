@@ -137,6 +137,8 @@ const App = () => {
         <label style={labelStyle}>Number of requests</label>
         <input
           type="number"
+          defaultValue={requestsCount}
+          min={1}
           onChange={(e) => setRequestsCount(Number(e.target.value))}
           style={inputStyle}
         />

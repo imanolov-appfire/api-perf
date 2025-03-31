@@ -25,9 +25,15 @@ remotes:
   - key: connect
     baseUrl: https://api-performance.netlify.app/
 connectModules:
-  jira:generalPages:
+  jira:webSections:
+    - key: ws-administration
+      location: admin_plugins_menu
+      name:
+        value: API performance
+      weight: 1
+  jira:adminPages:
     - key: api.test
       url: /index.html
       name:
         value: AP.request performance test
-      location: system.top.navigation.bar
+      location: admin_plugins_menu/ws-administration
