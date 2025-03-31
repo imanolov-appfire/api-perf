@@ -201,6 +201,15 @@ const App = () => {
           </ul>
         </div>
         <div style={{ marginTop: "20px" }}>
+          <strong>Average response time:</strong>{" "}
+          {responseTimes.length > 0
+            ? (
+                responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length
+              ).toFixed(2)
+            : 0}{" "}
+          ms
+        </div>
+        <div style={{ marginTop: "20px" }}>
           <strong>Total execution time:</strong>{" "}
           {(executionTime / 1000).toFixed(2)} s
         </div>
