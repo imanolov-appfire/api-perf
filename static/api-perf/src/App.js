@@ -51,7 +51,7 @@ export const connectRequest = ({ url, method, body }) =>
 
     window.AP.request(url, {
       contentType: "application/json",
-      method,
+      type: method,
       data: body ? JSON.stringify(body) : undefined,
       success: () => {
         const end = performance.now();
