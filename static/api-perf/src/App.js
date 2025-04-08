@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Promise as BluebirdPromise } from "bluebird";
+import { invoke } from "@forge/bridge";
 
 const inputStyle = {
   width: "100%",
@@ -66,6 +67,22 @@ export const connectRequest = ({ url, method, body }) =>
     });
   });
 
+const backendRequest = async ({ url, body, method }) => {
+  const start = performance.now();
+
+  const result = await invoke("doResolverRequest", {
+    url: url.replace("/rest/api/3/", ""),
+    body,
+    method,
+  });
+  console.log("********", result);
+  const end = performance.now();
+
+  console.log(`Request to ${url} took ${end - start} ms`);
+
+  return end - start;
+};
+
 const parallelPromise = ({ executor, url, method, body, count, concurrency }) =>
   BluebirdPromise.map(
     Array.from({ length: count }),
@@ -84,6 +101,12 @@ if (!process.env.REACT_APP_FORGE) {
   initAlljs();
 }
 
+const testNames = {
+  requestJira: "requestJira()",
+  ap: "AP.request()",
+  resolver: "resolver",
+};
+
 const App = () => {
   const [url, setUrl] = useState("");
   const [method, setMethod] = useState("GET");
@@ -94,7 +117,9 @@ const App = () => {
   const [responseTimes, setResponseTimes] = useState([]);
   const [concurrency, setConcurrency] = useState(5);
 
-  const requestHandler = process.env.REACT_APP_FORGE
+  const requestHandler = process.env.REACT_APP_BACKEND_REQUEST
+    ? backendRequest
+    : process.env.REACT_APP_FORGE
     ? forgeRequest
     : connectRequest;
 
@@ -130,7 +155,11 @@ const App = () => {
     <div style={containerStyle}>
       <div style={sectionStyle}>
         <h1 style={{ textAlign: "center", marginBottom: "20px" }}>
-          {process.env.REACT_APP_FORGE ? `requestJira()` : `AP.request()`}{" "}
+          {process.env.REACT_APP_BACKEND_REQUEST
+            ? testNames.resolver
+            : process.env.REACT_APP_FORGE
+            ? testNames.requestJira
+            : testNames.ap}{" "}
           performance test
         </h1>
         <label style={labelStyle}>

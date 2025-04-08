@@ -1,8 +1,13 @@
 modules:
   jira:adminPage:
-    - key: api-perf-hello-world-admin-page
+    - key: api-perf-admin-page
       resource: main
       title: requestJira performance test
+      resolver:
+        function: resolver
+  function:
+    - key: resolver
+      handler: index.handler
 resources:
   - key: main
     path: static/api-perf/build
